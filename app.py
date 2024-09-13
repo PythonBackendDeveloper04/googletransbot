@@ -1,21 +1,21 @@
-import handlers,middlewares
-from loader import dp,bot
-from aiogram.types.bot_command_scope_all_private_chats import BotCommandScopeAllPrivateChats
-import asyncio
+from loader import bot, dp
+import handlers, middlewares
 from utils.notify_admins import start,shutdown
+from aiogram.types.bot_command_scope_all_private_chats import BotCommandScopeAllPrivateChats
 from utils.set_botcommands import commands
-from  middlewares.test import CounterMiddleware
+#from middlewares.test import CounterMiddleware
 #from middlewares.mymiddleware import UserCheckMiddleware
-# Info
 import logging
 import sys
+import asyncio
+
 async def main():
     try:
         await bot.delete_webhook(drop_pending_updates=True)
         await bot.set_my_commands(commands=commands,scope=BotCommandScopeAllPrivateChats(type='all_private_chats'))
         dp.startup.register(start)
         dp.shutdown.register(shutdown)
-        # dp.message.middleware(CounterMiddleware())
+        #dp.message.middleware(CounterMiddleware())
         #dp.message.middleware(UserCheckMiddleware())
         await dp.start_polling(bot)
     finally:
