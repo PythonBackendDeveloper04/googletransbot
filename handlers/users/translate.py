@@ -1,27 +1,42 @@
-from loader import dp
+from loader import dp,db
 from aiogram import types,F
-from handlers.users.language import user_languages
+from googletrans import Translator # Google Translator API
+from gtts import gTTS # Google Text To Speech (gTTS)
+import time
 import os
-from googletrans import Translator
-from gtts import gTTS
 @dp.message(F.text)
 async def translate(message:types.Message):
+    # foydalanuvchining id sini olish
     user_id = message.from_user.id
-    language = user_languages.get(user_id,'en')
-    tarjimon = Translator()
+    # Foydalanuvchining tilini ma'lumotlar bazasidan olish
+    language = db.get_user_language(user_id)
+
+    # Translator sinfidan obyekt olamiz
+    translator = Translator()
     try:
-        tarjima = tarjimon.translate(message.text, dest=language)
-        await message.answer(tarjima.text)
+        # xabar matnini foydalanuvchining tiliga tarjima qilish
+        translated = translator.translate(message.text, dest=language)
+
+        # tarjima qilingan matnni foydalanuvchiga yuborish
+        await message.answer(translated.text)
+
+        # agar foydalanuvchi tili o'zbekcha bo'lmasa ovozli xabar ham yuboramiz
         if language != 'uz':
-            tts = gTTS(tarjima.text, lang=language)
-            tts.save(f'{message.chat.id}.mp3')
-            file = types.input_file.FSInputFile(path=f"{message.chat.id}.mp3")
+            # tarjimani ovozga aylantirish
+            tts = gTTS(translated.text, lang=language)
+            # Ovozli faylni saqlash (chat ID bilan nomlangan fayl)
+            tts.save(f"{message.from_user.id}.mp3")
+            # Ovozli faylni yuborish
+            file = types.input_file.FSInputFile(path=f"{message.from_user.id}.mp3")
             await message.answer_voice(voice=file)
         else:
+            # Agar foydalanuvchining tili o'zbekcha bo'lsa, ovozli xabar yuborilmaydi
             pass
         try:
-            os.remove(f'{message.chat.id}.mp3')
-        except:
-            pass
+            # Ovozli faylni o'chirish
+            os.remove(f"{message.from_user.id}.mp3")
+        except Exception as e:
+            # xatolik kelib chiqsa konsolga chiqarish
+            print(e)
     except:
         await message.answer("So'zning to'g'ri yozilganligiga ishonch hosil qiling")
