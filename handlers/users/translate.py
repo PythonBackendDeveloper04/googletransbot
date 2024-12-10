@@ -10,6 +10,7 @@ async def translate(message:types.Message):
     user_id = message.from_user.id
     # Foydalanuvchining tilini ma'lumotlar bazasidan olish
     language = db.get_user_language(user_id)
+    print(language)
 
     # Translator sinfidan obyekt olamiz
     translator = Translator()
